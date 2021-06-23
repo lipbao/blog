@@ -35,6 +35,17 @@ app.use(session({
 app.use(router)
 
 
+app.use((req, res, next) => {
+    res.send('404')
+})
+
+app.use((err, req, res, next) => {
+    res.status(500).json({
+        err_code: 500,
+        message: err.message
+    })
+})
+
 
 app.listen(3000, () => {
     console.log('app is running...')

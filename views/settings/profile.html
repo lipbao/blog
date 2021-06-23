@@ -6,36 +6,36 @@
 <section class="container">
   {{include '../_partials/settings-nav.html'}}
   <div class="col-md-5">
-    <form>
+    <form id="user_form">
       <div class="form-group">
-        <label for="exampleInputEmail1">账号</label>
-        <p class="form-control-static">email@example.com</p>
+        <label for="email" name="email">账号</label>
+        <p class="form-control-static">{{ user.email }}</p>
       </div>
       <div class="form-group">
-        <label for="exampleInputPassword1">昵称</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="">
+        <label for="nickname">昵称</label>
+        <input type="text" class="form-control" name="nickname" id="nickname" placeholder="" value="{{user.nickname}}">
       </div>
       <div class="form-group">
-        <label for="exampleInputPassword1">介绍</label>
-        <textarea class="form-control" rows="3"></textarea>
+        <label for="bio">介绍</label>
+        <textarea class="form-control" rows="3" name="bio">{{user.bio}}</textarea>
       </div>
       <div class="form-group">
-        <label for="exampleInputPassword1">性别</label>
+        <label for="gender" name="gender">性别</label>
         <div>
           <label class="radio-inline">
-            <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 男
+            <input type="radio" name="gender" id="inlineRadio1" value="0" checked="{{user.gender==0}}"> 男
           </label>
           <label class="radio-inline">
-            <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 女
+            <input type="radio" name="gender" id="inlineRadio2" value="1" checked="{{user.gender==1}}"> 女
           </label>
           <label class="radio-inline">
-            <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3"> 保密
+            <input type="radio" name="gender" id="inlineRadio3" value="-1" checked="{{user.gender==-1}}"> 保密
           </label>
         </div>
       </div>
       <div class="form-group">
-        <label for="exampleInputPassword1">生日</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="">
+        <label for="birthday">生日{{user.birthday}}</label>
+        <input type="date" class="form-control" name="birthday" id="birthday" placeholder="" value="{{user.birthday}}">
       </div>
       <button type="submit" class="btn btn-success">保存</button>
     </form>
@@ -44,12 +44,100 @@
     <dl>
       <dt>头像设置</dt>
       <dd>
-        <img class="avatar" width="150" height="150" src="../public/img/avatar-max-img.png" alt="">
+        <input type="file" name="uploadImg" accept="image/*" style="display: none;" id="uploadImg"
+          onchange="uploadFile()">
+        <img class="avatar" id="avatar_src" width="150" height="150" src="{{user.avatar}}" alt="">
         <div>
-          <button class="btn btn-default" href="">Upload new picture</button>
+          <button class="btn btn-default" href="" id="update_avatar">Upload new picture</button>
         </div>
       </dd>
     </dl>
   </div>
 </section>
 {{/block}}
+
+
+{{ block 'script' }}
+
+<script src="/node_modules/jquery/dist/jquery.js"></script>
+<script>
+
+  $('#user_form').on('submit', function (e) {
+    e.preventDefault();
+
+    var formData = $(this).serialize()
+    console.log(formData)
+
+    $.ajax({
+      url: '/settings/profile',
+      type: 'post',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        // console.log(data)
+        const err_code = data.err_code
+        const message = data.message
+
+        if (err_code === 0) {
+          window.location.href = '/settings/profile'
+          window.alert('信息保存成功')
+        } else if (err_code === 500) {
+          window.alert('服务器忙，请稍后重试！')
+        }
+      }
+    })
+  })
+
+  $('#update_avatar').on('click', function (e) {
+    // const avatar_src = $('#avatar_src')[0].src
+    // console.log(avatar_src)
+
+    // console.log($(this))
+    $('#uploadImg').click()
+
+  })
+
+  function uploadFile() {
+    var selected_file = $('#uploadImg')[0].files[0];
+    var reader = new FileReader();
+    reader.onloadend = function (e) {
+      var bin = e.target.result;
+      var data = {
+        "avatar": bin
+      };
+
+      // var data = new FormData();
+      // data.append('avatar', selected_file)
+      console.log(data)
+
+      // console.log($("#avatar_src").attr('src'))
+      $.ajax({
+        type: 'POST',
+        url: "/settings/profile",
+        dataType: 'json',
+        data: data,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          console.log(data)
+
+          const err_code = data.err_code
+          const message = data.message
+
+          if (err_code === 0) {
+            window.alert('头像保存成功')
+            // window.location.href = '/settings/profile'
+            $("#avatar_src").attr('src', bin)
+          } else if (err_code === 500) {
+            window.alert('服务器忙，请稍后重试！')
+          }
+        }
+      });
+    };
+    reader.readAsDataURL(selected_file);
+  }
+
+</script>
+
+
+{{ /block }}

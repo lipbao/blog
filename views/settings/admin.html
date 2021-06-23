@@ -10,18 +10,18 @@
       <h2>修改密码</h2>
     </div>
     <hr>
-    <form>
+    <form id="psd_submit">
       <div class="form-group">
         <label for="exampleInputPassword1">当前密码</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="">
+        <input type="password" class="form-control" name="password" id="exampleInputPassword1" placeholder="">
       </div>
       <div class="form-group">
         <label for="exampleInputPassword1">新的密码</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="">
+        <input type="password" class="form-control" name="newPassword" id="exampleInputPassword2" placeholder="">
       </div>
       <div class="form-group">
         <label for="exampleInputPassword1">确认密码</label>
-        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="">
+        <input type="password" class="form-control" name="confirmPassword" id="exampleInputPassword3" placeholder="">
       </div>
       <button type="submit" class="btn btn-success">保存</button>
     </form>
@@ -31,9 +31,60 @@
     </div>
     <div>
       <p>一旦注销，不可找回，请谨慎操作</p>
-      <button class="btn btn-danger">删除</button>
+      <button class="btn btn-danger" id="delete_user">删除</button>
     </div>
     <hr>
   </div>
 </section>
 {{/block}}
+
+
+{{ block 'script' }}
+<script src="/node_modules/jquery/dist/jquery.js"></script>
+<script>
+  // window.onload = function () {
+  //   alert($)
+  // }
+  $('#psd_submit').on('submit', function (e) {
+    // console.log(e)
+    var that = this
+    e.preventDefault()
+
+    // console.log(this.newPassword.value)
+    if (this.password.value == '' || this.newPassword.value == '' || this.confirmPassword.value == '') {
+      return window.alert('密码不能为空,请输入密码!')
+    }
+    if (this.newPassword.value !== this.confirmPassword.value) {
+      return window.alert('新密码输入不一致,请重新输入!')
+    }
+    var formData = $(this).serialize()
+    console.log(formData)
+    $.ajax({
+      url: '/settings/admin',
+      type: 'post',
+      data: formData,
+      dataType: 'json',
+      success: function (data) {
+        console.log(data)
+        var err_code = data.err_code
+        if (err_code === 0) {
+          window.alert('密码修改成功！')
+          // that.password.value = ''
+          // that.newPassword.value = ''
+          // that.confirmPassword.value = ''
+          // 服务端重定向针对异步请求无效
+          window.location.href = '/login'
+        } else if (err_code === 1) {
+          window.alert(data.message)
+        }
+      }
+    })
+  })
+
+
+
+  $('#delete_user').on('click',function(e){
+    console.log(e)
+  })
+</script>
+{{ /block }}

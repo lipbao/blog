@@ -2,11 +2,13 @@
 const express = require('express')
 const User = require('./models/user')
 const md5 = require('blueimp-md5')
+const formidable = require('formidable')
 
 const router = express.Router()
 
 router.get('/', function (req, res) {
     // console.log(req.session.user)
+    // res.render('settings/profile.html', {
     res.render('index.html', {
         user: req.session.user
     })
@@ -45,10 +47,12 @@ router.post('/login', function (req, res, next) {
 
     }).catch(error => {
         // console.log(error)
-        return res.status(500).json({
-            err_code: 500,
-            message: error.message
-        })
+        // return res.status(500).json({
+        //     err_code: 500,
+        //     message: error.message
+        // })
+
+        return next(error)
     })
 
     // User.findOne({
@@ -94,61 +98,6 @@ router.post('/register', async function (req, res, next) {
     //    如果不存在，注册新建用户
     // 3. 发送响应
     var body = req.body
-    // User.findOne({
-    //     $or: [
-    //         {
-    //             email: body.email
-    //         },
-    //         {
-    //             nickname: body.nickname
-    //         }
-    //     ]
-    // }).then(data => {
-
-    //     if (data) {
-    //         // 邮箱或者昵称已存在
-    //         return res.status(200).json({
-    //             err_code: 1,
-    //             message: 'Email or nickname aleady exists.'
-    //         })
-    //         return res.send(`邮箱或者密码已存在，请重试`)
-    //     }
-
-    //     // 对密码进行 md5 重复加密
-    //     body.password = md5(md5(body.password))
-
-    //     var user = new User(body)
-
-    //     user.save()
-    //         .then(result => {
-
-    //             // 注册成功，使用 Session 记录用户的登陆状态
-    //             // req.session.user = user
-
-    //             // Express 提供了一个响应方法：json
-    //             // 该方法接收一个对象作为参数，它会自动帮你把对象转为字符串再发送给浏览器
-    //             res.status(200).json({
-    //                 err_code: 0,
-    //                 message: 'OK'
-    //             })
-
-    //             // 服务端重定向只针对同步请求才有效，异步请求无效
-    //             // res.redirect('/')
-    //         })
-    //         .catch(err => {
-    //             return res.status(500).json({
-    //                 err_code: 500,
-    //                 message: '服务端错误'
-    //             })
-    //         })
-
-    // }).catch(err => {
-    //     return res.status(500).json({
-    //         err_code: 500,
-    //         message: '服务端错误'
-    //     })
-    // })
-
 
     try {
         if (await User.findOne({ email: body.email })) {
@@ -172,6 +121,9 @@ router.post('/register', async function (req, res, next) {
 
         // 注册成功，使用 Session 记录用户的登陆状态
         req.session.user = user
+        // console.log(user)
+
+        console.log()
 
         res.status(200).json({
             err_code: 0,
@@ -179,20 +131,132 @@ router.post('/register', async function (req, res, next) {
         })
     } catch (error) {
         // console.log(error)
-        res.status(500).json({
-            err_code: 500,
-            message: 'Interval error'
-        })
+        // res.status(500).json({
+        //     err_code: 500,
+        //     message: 'Interval error'
+        // })
+        return next(error)
     }
 
 })
 
 
-router.get('/logout',(req,res)=>{
-    res.session.user = null
-    
+router.get('/logout', (req, res) => {
+    req.session.user = null
+
     // 重定向
     res.redirect('/login')
 })
 
+
+router.get('/topics/new', (req, res, next) => {
+    // console.log(req.session.user)
+    res.render('topic/new.html', {
+        user: req.session.user
+    })
+})
+
+router.get('/topics/123', (req, res, next) => {
+    // console.log(req.session.user)
+    res.render('topic/show.html', {
+        user: req.session.user
+    })
+})
+
+router.get('/settings/profile', (req, res, next) => {
+    res.render('settings/profile.html', {
+        user: req.session.user
+    })
+})
+
+router.post('/settings/profile', async (req, res, next) => {
+    const body = req.body
+    const sessionUserId = req.session.user._id
+    console.log(body)
+    console.log(req)
+    // console.log(typeof body.birthday)
+
+    // body._id = sessionUserId
+
+    // body.birthday = dateForm(body.birthday)
+    // console.log(sessionUserId)
+    // console.log('node 内部')
+    // console.log(body)
+    try {
+
+        await User.findByIdAndUpdate(sessionUserId, body)
+        const user = await User.findById(sessionUserId)
+
+        // console.log('node 运行结束  ')
+        req.session.user = user
+        // res.render('setting/profile.html',{
+        //     user:req.session.user
+        // })
+        // console.log(user.birthday)
+        return res.status(200).json({
+            err_code: 0,
+            message: 'Ok'
+        })
+    } catch (error) {
+        return next(error)
+    }
+})
+router.get('/settings/admin', (req, res, next) => {
+    res.render('settings/admin.html', {
+        user: req.session.user
+    })
+    // next()
+})
+
+router.post('/settings/admin', async (req, res, next) => {
+    var body = req.body
+    var sessionUser = req.session.user
+    // console.log(sessionUser)
+    // console.log(sessionUser.id)
+    // console.log(body.newPassword)
+    try {
+
+        if (md5(md5(body.password)) !== sessionUser.password) {
+            return res.status(200).json({
+                err_code: 1,
+                message: '密码错误,请重新输入!'
+            })
+        }
+
+        // console.log(sessionUser)
+        // console.log(body.newPassword)
+        await User.findByIdAndUpdate(sessionUser._id, { password: md5(md5(body.newPassword)) })
+
+        return res.status(200).json({
+            err_code: 0,
+            message: 'Ok'
+        })
+
+        req.json.session.user = null
+
+
+    } catch (error) {
+        return next(error)
+    }
+
+})
+
 module.exports = router
+
+// new Date().getFullYear
+
+function dateForm(time) {
+    let year = time.getFullYear(),
+        month = getTenNum(time.getMonth() + 1),
+        day = getTenNum(time.getDate());
+
+    return year + '/' + month + '/' + day
+}
+
+function getTenNum(num) {
+    if (num < 10) {
+        return '0' + num
+    } else {
+        return num
+    }
+}

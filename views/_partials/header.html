@@ -39,13 +39,13 @@
         {{ if user }}
         <a class="btn btn-default navbar-btn" href="/topics/new">发起</a>
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img width="20" height="20" src="../public/img/avatar-max-img.png" alt=""> <span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img width="20" height="20" src="user.avatar" alt=""> <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li class="dropdown-current-user">
               当前登录用户: {{ user.nickname }}
             </li>
             <li role="separator" class="divider"></li>
-            <li><a href="#">个人主页</a></li>
+            <li><a href="/settings/admin">个人主页</a></li>
             <li><a href="/settings/profile">设置</a></li>
             <li><a href="/logout">退出</a></li>
           </ul>
@@ -60,3 +60,4 @@
   </div>
   <!-- /.container-fluid -->
 </nav>
+
