@@ -60,6 +60,7 @@
 {{ block 'script' }}
 
 <script src="/node_modules/jquery/dist/jquery.js"></script>
+<!-- <script src="../../utils/formatDate.js"></script> -->
 <script>
 
   $('#user_form').on('submit', function (e) {
@@ -102,19 +103,12 @@
     var reader = new FileReader();
     reader.onloadend = function (e) {
       var bin = e.target.result;
-      var data = {
-        "avatar": bin
-      };
-
-      // var data = new FormData();
-      // data.append('avatar', selected_file)
-      console.log(data)
-
-      // console.log($("#avatar_src").attr('src'))
+      var data = new FormData();
+      data.append('avatar', bin)
       $.ajax({
         type: 'POST',
-        url: "/settings/profile",
-        dataType: 'json',
+        url: "/settings/profile/upload",
+        // dataType: 'json',
         data: data,
         processData: false,
         contentType: false,
@@ -125,8 +119,7 @@
           const message = data.message
 
           if (err_code === 0) {
-            window.alert('头像保存成功')
-            // window.location.href = '/settings/profile'
+            window.location.href = '/settings/profile'
             $("#avatar_src").attr('src', bin)
           } else if (err_code === 500) {
             window.alert('服务器忙，请稍后重试！')
@@ -136,6 +129,7 @@
     };
     reader.readAsDataURL(selected_file);
   }
+
 
 </script>
 

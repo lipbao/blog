@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <!-- <form action="" id="img"> -->
+    <input type="file" accept="image/*" name="avatar" onchange="uploadFile()" id="upload_file">
+    <button id="btn" type="subnmit">上传文件</button>
+    <!-- </form> -->
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+
+    <script>
+        $('#btn').on('click', function (e) {
+            $("#upload_file").click()
+        })
+
+        // $("#img").on('submit',function(e){
+        //     e.preventDefault()
+        //     var formData = $(this).serialize()
+        //     console.log(formData)
+        // })
+
+        function uploadFile() {
+            console.log('22222')
+            const file = $("#upload_file")[0].files[0]
+            console.log(file)
+
+            var reader = new FileReader();
+            reader.onloadend = function (e) {
+                // console.log(e.target.result)
+                const avatar = e.target.result
+
+                // console.log( avatar)
+                console.log(typeof avatar)
+                const formData = new FormData()
+
+                formData.append('avatar', avatar)
+
+                // const formData = {
+                //     avatar
+                // }
+
+                $.ajax({
+                    url: '/test',
+                    type: 'post',
+                    data: formData,
+                    // dataType:'json',
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        console.log(data)
+                    }
+                })
+            }
+
+            reader.readAsDataURL(file)
+        }
+
+    </script>
+</body>
+
+</html>

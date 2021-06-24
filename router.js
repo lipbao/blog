@@ -1,10 +1,38 @@
 
 const express = require('express')
 const User = require('./models/user')
+const Test = require("./models/test")
+
 const md5 = require('blueimp-md5')
 const formidable = require('formidable')
+const multiparty = require('multiparty')
 
 const router = express.Router()
+
+router.get('/test', (req, res) => {
+    res.render('test.html')
+})
+
+router.post('/test', (req, res, next) => {
+    var form = new multiparty.Form()
+
+    form.parse(req, (err, fields, files) => {
+        // console.log(fields)
+        const avatar = { avatar: fields['avatar'][0] }
+
+        console.log(avatar)
+        var test = new Test(avatar)
+
+        console.log(test)
+        test.save()
+            .then(results => {
+                console.log(results)
+            })
+            .catch(err => {
+                return next(err)
+            })
+    })
+})
 
 router.get('/', function (req, res) {
     // console.log(req.session.user)
@@ -171,28 +199,14 @@ router.get('/settings/profile', (req, res, next) => {
 
 router.post('/settings/profile', async (req, res, next) => {
     const body = req.body
-    const sessionUserId = req.session.user._id
-    console.log(body)
-    console.log(req)
-    // console.log(typeof body.birthday)
-
-    // body._id = sessionUserId
-
-    // body.birthday = dateForm(body.birthday)
-    // console.log(sessionUserId)
-    // console.log('node 内部')
     // console.log(body)
+    const sessionUserId = req.session.user._id
     try {
 
-        await User.findByIdAndUpdate(sessionUserId, body)
-        const user = await User.findById(sessionUserId)
-
-        // console.log('node 运行结束  ')
+        const user = await User.findByIdAndUpdate(sessionUserId, body)
+        // console.log(user)
+        // const user = await User.findById(sessionUserId)
         req.session.user = user
-        // res.render('setting/profile.html',{
-        //     user:req.session.user
-        // })
-        // console.log(user.birthday)
         return res.status(200).json({
             err_code: 0,
             message: 'Ok'
@@ -200,6 +214,31 @@ router.post('/settings/profile', async (req, res, next) => {
     } catch (error) {
         return next(error)
     }
+})
+
+router.post('/settings/profile/upload', async (req, res, next) => {
+    var form = new multiparty.Form()
+    const sessionUserId = req.session.user._id
+
+    form.parse(req, async (err, fields, files) => {
+        // console.log(fields) // 保存的是data:img编码
+        // console.log(files) // 保存的是图片的文件
+        const avatar = { avatar: fields['avatar'][0] }
+        try {
+
+            const user = await User.findByIdAndUpdate(sessionUserId, avatar)
+            // const user = await User.findById(sessionUserId)
+            req.session.user = user
+            return res.status(200).json({
+                err_code: 0,
+                message: 'Ok'
+            })
+        } catch (error) {
+            return next(error)
+        }
+    })
+
+
 })
 router.get('/settings/admin', (req, res, next) => {
     res.render('settings/admin.html', {
@@ -245,18 +284,3 @@ module.exports = router
 
 // new Date().getFullYear
 
-function dateForm(time) {
-    let year = time.getFullYear(),
-        month = getTenNum(time.getMonth() + 1),
-        day = getTenNum(time.getDate());
-
-    return year + '/' + month + '/' + day
-}
-
-function getTenNum(num) {
-    if (num < 10) {
-        return '0' + num
-    } else {
-        return num
-    }
-}
