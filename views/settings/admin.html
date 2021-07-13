@@ -76,6 +76,8 @@
           window.location.href = '/login'
         } else if (err_code === 1) {
           window.alert(data.message)
+        }else if(err_code === 500){
+          window.alert('服务器忙，请稍后重试！')
         }
       }
     })
@@ -83,8 +85,24 @@
 
 
 
-  $('#delete_user').on('click',function(e){
-    console.log(e)
+  $('#delete_user').on('click', function (e) {
+    // console.log(e)
+
+    $.ajax({
+      url: '/settings/admin/del',
+      type: 'get',
+      data:'',
+      success: function (data) {
+        console.log(data)
+        const err_code = data.err_code
+
+        if (err_code === 0) {
+          window.location.href = '/'
+        } else if (err_code === 500) {
+          window.alert('服务器忙，请稍后重试！')
+        }
+      }
+    })
   })
 </script>
 {{ /block }}

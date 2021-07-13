@@ -1,4 +1,3 @@
-
 const express = require('express')
 const User = require('./models/user')
 const Test = require("./models/test")
@@ -34,7 +33,7 @@ router.post('/test', (req, res, next) => {
     })
 })
 
-router.get('/', function (req, res) {
+router.get('/', function(req, res) {
     // console.log(req.session.user)
     // res.render('settings/profile.html', {
     res.render('index.html', {
@@ -42,11 +41,11 @@ router.get('/', function (req, res) {
     })
 })
 
-router.get('/login', function (req, res) {
+router.get('/login', function(req, res) {
     res.render('login.html')
 })
 
-router.post('/login', function (req, res, next) {
+router.post('/login', function(req, res, next) {
     // 1. 获取表单数据
     // 2. 查询数据库用户名密码是否正确
     // 3. 发送响应数据
@@ -113,11 +112,11 @@ router.post('/login', function (req, res, next) {
     // })
 })
 
-router.get('/register', function (req, res, next) {
+router.get('/register', function(req, res, next) {
     res.render('register.html')
 })
 
-router.post('/register', async function (req, res, next) {
+router.post('/register', async function(req, res, next) {
     // 1. 获取表单提交的数据
     //    req.body
     // 2. 操作数据库
@@ -149,7 +148,7 @@ router.post('/register', async function (req, res, next) {
 
         // 注册成功，使用 Session 记录用户的登陆状态
         req.session.user = user
-        // console.log(user)
+            // console.log(user)
 
         console.log()
 
@@ -193,19 +192,20 @@ router.get('/topics/123', (req, res, next) => {
 
 router.get('/settings/profile', (req, res, next) => {
     res.render('settings/profile.html', {
-        user: req.session.user
+        user: req.session.user,
+        profileoradmin: 0
     })
 })
 
-router.post('/settings/profile', async (req, res, next) => {
+router.post('/settings/profile', async(req, res, next) => {
     const body = req.body
-    // console.log(body)
+        // console.log(body)
     const sessionUserId = req.session.user._id
     try {
 
         const user = await User.findByIdAndUpdate(sessionUserId, body)
-        // console.log(user)
-        // const user = await User.findById(sessionUserId)
+            // console.log(user)
+            // const user = await User.findById(sessionUserId)
         req.session.user = user
         return res.status(200).json({
             err_code: 0,
@@ -216,18 +216,18 @@ router.post('/settings/profile', async (req, res, next) => {
     }
 })
 
-router.post('/settings/profile/upload', async (req, res, next) => {
+router.post('/settings/profile/upload', async(req, res, next) => {
     var form = new multiparty.Form()
     const sessionUserId = req.session.user._id
 
-    form.parse(req, async (err, fields, files) => {
+    form.parse(req, async(err, fields, files) => {
         // console.log(fields) // 保存的是data:img编码
         // console.log(files) // 保存的是图片的文件
         const avatar = { avatar: fields['avatar'][0] }
         try {
 
             const user = await User.findByIdAndUpdate(sessionUserId, avatar)
-            // const user = await User.findById(sessionUserId)
+                // const user = await User.findById(sessionUserId)
             req.session.user = user
             return res.status(200).json({
                 err_code: 0,
@@ -240,19 +240,36 @@ router.post('/settings/profile/upload', async (req, res, next) => {
 
 
 })
+
+router.get('/settings/admin/del', (req, res, next) => {
+    const sessionUserID = req.session.user._id;
+
+    User.findByIdAndRemove(sessionUserID)
+        .then((result) => {
+            // console.log(result)
+            req.session.user = null
+            return res.status(200).json({
+                err_code: 0,
+                message: "Ok"
+            })
+        }).catch(err => {
+            return next(err)
+        })
+})
 router.get('/settings/admin', (req, res, next) => {
     res.render('settings/admin.html', {
-        user: req.session.user
-    })
-    // next()
+            user: req.session.user,
+            profileoradmin: 1
+        })
+        // next()
 })
 
-router.post('/settings/admin', async (req, res, next) => {
+router.post('/settings/admin', async(req, res, next) => {
     var body = req.body
     var sessionUser = req.session.user
-    // console.log(sessionUser)
-    // console.log(sessionUser.id)
-    // console.log(body.newPassword)
+        // console.log(sessionUser)
+        // console.log(sessionUser.id)
+        // console.log(body.newPassword)
     try {
 
         if (md5(md5(body.password)) !== sessionUser.password) {
@@ -283,4 +300,3 @@ router.post('/settings/admin', async (req, res, next) => {
 module.exports = router
 
 // new Date().getFullYear
-
